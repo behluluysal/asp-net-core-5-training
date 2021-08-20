@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace rokWebsite.Models
 {
-    public class Kingdom
+    public class Kingdom 
     {
         [Key]
         public int Id { get; set; }
