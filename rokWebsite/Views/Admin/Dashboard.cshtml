@@ -3,6 +3,78 @@
     ViewData["Title"] = "Dashboard";
 }
 
+<div class="sidebar" data-color="purple" data-background-color="black" data-image="/img/sidebar-2.jpg">
+    <!--
+    <img src="" />
+                    Tip 1: You can change the color of the sidebar using: data-color="purple | azure | green | orange | danger"
+
+                    Tip 2: you can also add an image using data-image tag
+                -->
+    <div class="logo">
+        <a href="http://www.creative-tim.com" class="simple-text logo-normal">
+            Creative Tim
+        </a>
+    </div>
+    <div class="sidebar-wrapper">
+        <ul class="nav flex-column" id="nav_accordion">
+            <li class="nav-item  active ">
+                <a class="nav-link" asp-action="Dashboard" asp-controller="Admin">
+                    <i class="material-icons">dashboard</i>
+                    <p>Dashboard</p>
+                </a>
+            </li>
+            <li class="nav-item has-submenu ">
+                <a class="nav-link" href="#">
+                    <i class="material-icons">content_paste</i>
+                    <p>Role Actions <span class="caret"></span> </p>
+                </a>
+                <ul class="submenu collapse ">
+                    <li class=""><a class="nav-link" asp-action="CreateRole" asp-controller="Admin">Create Role </a></li>
+                    <li><a class="nav-link" href="#">Submenu item 2 </a></li>
+                    <li><a class="nav-link" href="#">Submenu item 3 </a> </li>
+                </ul>
+            </li>
+            <li class="nav-item ">
+                <a class="nav-link" href="./tables.html">
+                    <i class="material-icons">content_paste</i>
+                    <p>Table List</p>
+                </a>
+            </li>
+            <li class="nav-item ">
+                <a class="nav-link" href="./typography.html">
+                    <i class="material-icons">library_books</i>
+                    <p>Typography</p>
+                </a>
+            </li>
+            <li class="nav-item ">
+                <a class="nav-link" href="./icons.html">
+                    <i class="material-icons">bubble_chart</i>
+                    <p>Icons</p>
+                </a>
+            </li>
+            <li class="nav-item ">
+                <a class="nav-link" href="./map.html">
+                    <i class="material-icons">location_ons</i>
+                    <p>Maps</p>
+                </a>
+            </li>
+            <li class="nav-item ">
+                <a class="nav-link" href="./notifications.html">
+                    <i class="material-icons">notifications</i>
+                    <p>Notifications</p>
+                </a>
+            </li>
+            <!-- <li class="nav-item active-pro ">
+                <a class="nav-link" href="./upgrade.html">
+                    <i class="material-icons">unarchive</i>
+                    <p>Upgrade to PRO</p>
+                </a>
+            </li> -->
+        </ul>
+    </div>
+</div>
+
+
 <div class="container-fluid">
     <div class="row">
         <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">

@@ -16,6 +16,5 @@ namespace rokWebsite.Data
         }
 
         public DbSet<Kingdom> Kingdoms { get; set; }
-        public DbSet<Alliance> Alliances { get; set; }
     }
 }
