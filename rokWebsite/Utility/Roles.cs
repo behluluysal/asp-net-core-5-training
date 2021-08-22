@@ -3,9 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace rokWebsite.Models
+namespace rokWebsite.Utility
 {
-    public class Members : Player
+    public enum Roles
     {
+        SuperAdmin,
+        Admin,
+        Basic
     }
 }
