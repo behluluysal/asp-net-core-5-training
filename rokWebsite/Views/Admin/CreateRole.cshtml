@@ -74,12 +74,18 @@
     </div>
 </div>
 
-<link rel="stylesheet" href="https://cdn.datatables.net/1.10.25/css/dataTables.bootstrap5.min.css">
+
+
+@section HeadScripts
+{
+    <link href="~/css/dataTable.css" rel="stylesheet" />
+}
+
 
 <div class="container">
     <div class="row">
         <div class="col-md-4">
-            
+
             <div class="card">
                 <div class="card-header card-header-primary">
                     <h4 class="card-title">Create Role</h4>
@@ -102,22 +108,20 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-8" style="background-color:red">
-            <div class="card">
-                <h3 class="card-header" style="color:white; text-align:center">Create Role</h3>
-                <div class="card-body">
-                    <form method="post" class="card container">
-                        <div asp-validation-summary="All" class="text-danger"></div>
-                        <div class="form-group">
-                            <input asp-for="RoleName" type="text" placeholder="RoleName" />
-                            <span asp-validation-for="RoleName" class="text-danger"></span>
-                        </div>
-                        <input type="submit" class="btn btn-primary" value="Create Role" />
-                    </form>
-                </div>
-            </div> 
+        <div class="col-md-8">
+            <partial name="_PartialViews/RolesPartialView" />
         </div>
     </div>
 </div>
 
+
+@section JsScripts
+{
+    <script src="~/js/CustomDatatable.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('#example').DataTable();
+        });
+    </script>
+}
 
