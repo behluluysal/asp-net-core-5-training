@@ -1,7 +1,7 @@
-﻿@{
+﻿@model rokWebsite.ViewModels.CreateRoleViewModel
+@{
 
 }
-
 
 
 <div class="card">
@@ -11,229 +11,35 @@
     </div>
     <div class="card-body">
         <div class="table-responsive">
-            <table id="example" class="table">
+            <table id="example" class="table" style="table-layout: fixed;">
                 <thead class=" text-primary">
-                <th>
-                    ID
-                </th>
-                <th>
-                    Name
-                </th>
-                <th>
-                    Country
-                </th>
-                <th>
-                    City
-                </th>
-                <th>
-                    Salary
-                </th>
+                    <tr>
+                        <th scope="col">
+                            Name
+                        </th>
+                        <th scope="col">
+                            Id
+                        </th>
+                        <th scope="col" data-sortable="false">
+
+                        </th>
+                    </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td>
-                            1
-                        </td>
-                        <td>
-                            Dakota Rice
-                        </td>
-                        <td>
-                            Niger
-                        </td>
-                        <td>
-                            Oud-Turnhout
-                        </td>
-                        <td class="text-primary">
-                            $36,738
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            2
-                        </td>
-                        <td>
-                            Minerva Hooper
-                        </td>
-                        <td>
-                            Curaçao
-                        </td>
-                        <td>
-                            Sinaai-Waas
-                        </td>
-                        <td class="text-primary">
-                            $23,789
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            3
-                        </td>
-                        <td>
-                            Sage Rodriguez
-                        </td>
-                        <td>
-                            Netherlands
-                        </td>
-                        <td>
-                            Baileux
-                        </td>
-                        <td class="text-primary">
-                            $56,142
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            4
-                        </td>
-                        <td>
-                            Philip Chaney
-                        </td>
-                        <td>
-                            Korea, South
-                        </td>
-                        <td>
-                            Overland Park
-                        </td>
-                        <td class="text-primary">
-                            $38,735
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            5
-                        </td>
-                        <td>
-                            Doris Greene
-                        </td>
-                        <td>
-                            Malawi
-                        </td>
-                        <td>
-                            Feldkirchen in Kärnten
-                        </td>
-                        <td class="text-primary">
-                            $63,542
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            6
-                        </td>
-                        <td>
-                            Mason Porter
-                        </td>
-                        <td>
-                            Chile
-                        </td>
-                        <td>
-                            Gloucester
-                        </td>
-                        <td class="text-primary">
-                            $78,615
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            6
-                        </td>
-                        <td>
-                            Mason Porter
-                        </td>
-                        <td>
-                            Chile
-                        </td>
-                        <td>
-                            Gloucester
-                        </td>
-                        <td class="text-primary">
-                            $78,615
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            6
-                        </td>
-                        <td>
-                            Mason Porter
-                        </td>
-                        <td>
-                            Chile
-                        </td>
-                        <td>
-                            Gloucester
-                        </td>
-                        <td class="text-primary">
-                            $78,615
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            6
-                        </td>
-                        <td>
-                            Mason Porter
-                        </td>
-                        <td>
-                            Chile
-                        </td>
-                        <td>
-                            Gloucester
-                        </td>
-                        <td class="text-primary">
-                            $78,615
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            6
-                        </td>
-                        <td>
-                            Mason Porter
-                        </td>
-                        <td>
-                            Chile
-                        </td>
-                        <td>
-                            Gloucester
-                        </td>
-                        <td class="text-primary">
-                            $78,615
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            6
-                        </td>
-                        <td>
-                            Mason Porter
-                        </td>
-                        <td>
-                            Chile
-                        </td>
-                        <td>
-                            Gloucester
-                        </td>
-                        <td class="text-primary">
-                            $78,615
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            6
-                        </td>
-                        <td>
-                            Mason Porter
-                        </td>
-                        <td>
-                            Chile
-                        </td>
-                        <td>
-                            Gloucester
-                        </td>
-                        <td class="text-primary">
-                            $78,615
-                        </td>
-                    </tr>
+                    @foreach (var item in Model.Roles)
+                    {
+                        <tr>
+                            <td style="overflow: hidden;">
+                                @item.Id
+                            </td>
+                            <td >
+                                @item.Name
+                            </td>
+                            <td>
+                                <button type="button" id="@item.Id" style="background-color: transparent; color: #ffc107; border-color: #ffc107 !important" class="btn btn-outline-warning"  onmouseover="this.style.color='#ffc107'" data-bs-toggle="modal" data-bs-target="#exampleModal">Edit</button>
+                            </td>
+                        </tr>
+                    }
                 </tbody>
             </table>
         </div>
