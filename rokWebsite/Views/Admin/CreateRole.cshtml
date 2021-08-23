@@ -4,6 +4,7 @@
     ViewData["Title"] = "CreateRole";
 }
 
+<span id="AntiForge"> @Html.AntiForgeryToken() </span>
 
 
 
@@ -17,54 +18,63 @@
     <div class="row">
         <div class="col-md-4">
             <div class="row">
-                <div class="card">
+
+
+
+                <div class="card" style="background-color: #202940 ">
                     <div class="card-header card-header-primary">
-                        <h4 class="card-title">Create Role</h4>
+                        <h4 class="card-title">Role Actions</h4>
                     </div>
                     <div class="card-body">
-                        <form method="post" asp-controller="Admin" asp-action="CreateRole">
-                            <div asp-validation-summary="All" class="text-danger"></div>
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <div class="form-group">
-                                        <label class="bmd-label-floating" asp-for="Role.Name"></label>
-                                        <input asp-for="Role.Name" type="text" class="form-control" autocomplete="off" />
-                                        <span asp-validation-for="Role.Name" class="text-danger"></span>
-                                    </div>
-                                </div>
+                        <div class="card" style="background-color: #1A2035 ">
+                            <div class="card-header card-header-primary">
+                                <h4 class="card-title">Create Role</h4>
                             </div>
-                            <button type="submit" class="btn btn-primary pull-right">Create Role</button>
+                            <div class="card-body">
+                                <form method="post" asp-controller="Admin" asp-action="CreateRole">
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="form-group">
+                                                <label class="bmd-label-floating" asp-for="@Model.RoleName"></label>
+                                                <input asp-for="@Model.RoleName" type="text" class="form-control" autocomplete="off" />
+                                                <span asp-validation-for="@Model.RoleName" class="text-danger"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary pull-right">Create Role</button>
 
-                            <div class="clearfix"></div>
-                        </form>
+                                    <div class="clearfix"></div>
+                                </form>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="card" style="background-color: #1A2035">
+                            <div class="card-header card-header-primary">
+                                <h4 class="card-title">Delete Role</h4>
+                            </div>
+                            <div class="card-body">
+                                <form>
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="form-group">
+                                                <label class="bmd-label-floating" asp-for="@Model.DeleteRoleName"></label>
+                                                <input id="DeleteRoleName" asp-for="@Model.DeleteRoleName" type="text" class="form-control" autocomplete="off" />
+                                                <span asp-validation-for="@Model.DeleteRoleName" class="text-danger"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button type="button" onclick="DeleteRole()" class="btn btn-primary pull-right">Delete Role</button>
+
+                                    <div class="clearfix"></div>
+                                </form>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="row">
-                <div class="card">
-                    <div class="card-header card-header-primary">
-                        <h4 class="card-title">Delete Role</h4>
-                    </div>
-                    <div class="card-body">
-                        <form method="post" asp-controller="Admin" asp-action="DeleteRole">
-                            <div asp-validation-summary="All" class="text-danger"></div>
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <div class="form-group">
-                                        <label class="bmd-label-floating" asp-for="Role.Name"></label>
-                                        <input asp-for="Role.Name" type="text" class="form-control" autocomplete="off" />
-                                        <span asp-validation-for="Role.Name" class="text-danger"></span>
-                                    </div>
-                                </div>
-                            </div>
-                            <button type="submit" class="btn btn-primary pull-right">Create Role</button>
 
-                            <div class="clearfix"></div>
-                        </form>
-                    </div>
-                </div>
+
             </div>
-            
+
         </div>
         <div class="col-md-8">
             <partial name="_PartialViews/RolesPartialView" />
@@ -100,6 +110,37 @@
     <link href="~/css/dataTable.css" rel="stylesheet" />
     <script src="~/js/CustomDatatable.js"></script>
     <script>
+        function DeleteRole() {
+            var data = $('#DeleteRoleName').val()
+            var url = "@(Url.Action("DeleteRolet", "Admin"))"
+            var token = $('#AntiForge').val();
+            alert(token);
+
+
+
+
+            $.ajax({
+                type: "post",
+                cache: false,
+                contenttype: "application/json; charset=utf-8",
+                url: url,
+                data: { DeleteRoleName: data, },
+                datatype: "json",
+                success: function (data) {
+                    if (data.baz == "test")
+                        alert("baz")
+                },
+                error: function (xhr, err) {
+                    alert("readystate: " + xhr.readystate + "\nstatus: " + xhr.status);
+                    alert("responsetext: " + xhr.responsetext);
+                }
+            })
+        }
+
+
+
+
+
 
         $(document).ready(function () {
             $('#example').DataTable({
@@ -108,9 +149,11 @@
         });
 
         var myModal = document.getElementById('myModal')
-
-
     </script>
+
+    @{
+        <partial name="_ValidationScriptsPartial" />
+    }
 }
 
 @{

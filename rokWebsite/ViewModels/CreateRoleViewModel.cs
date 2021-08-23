@@ -9,7 +9,11 @@ namespace rokWebsite.ViewModels
 {
     public class CreateRoleViewModel
     {
-        public IdentityRole Role { get; set; }
+        [Required]
+        public string RoleName { get; set; }
+
+        [Required]
+        public string DeleteRoleName { get; set; }
 
         public List<IdentityRole> Roles { get; set; }
     }

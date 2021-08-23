@@ -37,26 +37,25 @@ namespace rokWebsite.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateRole(CreateRoleViewModel model)
         {
-            if(ModelState.IsValid)
-            {
-                
                 IdentityRole identityRole = new IdentityRole
                 {
-                    Name = model.Role.Name
+                    Name = model.RoleName
                 };
                 IdentityResult result = await roleManager.CreateAsync(identityRole);
-                //add roles back to model for refresh
-                model.Roles = _db.Roles.ToList();
+                
                 if (result.Succeeded)
                 {
+                    //add roles back to model for refresh
+                    model.Roles = _db.Roles.ToList();
                     return View(model);
                 }
                 foreach (IdentityError error in result.Errors)
                 {
                     ModelState.AddModelError("", error.Description);
                 }
-               
-            }
+            ModelState["DeleteRoleName"].Errors.Clear();
+            //add roles back to model for refresh
+            model.Roles = _db.Roles.ToList();
             return View(model);
         }
 
@@ -65,9 +64,7 @@ namespace rokWebsite.Controllers
         [HttpPost]
         public async Task<IActionResult> DeleteRole(CreateRoleViewModel model)
         {
-            if (ModelState.IsValid)
-            {
-                IdentityRole identityRole = await roleManager.FindByNameAsync(model.Role.Name);
+                IdentityRole identityRole = await roleManager.FindByNameAsync(model.DeleteRoleName);
                 IdentityResult result = await roleManager.DeleteAsync(identityRole);
                 //add roles back to model for refresh
                 model.Roles = _db.Roles.ToList();
@@ -76,8 +73,17 @@ namespace rokWebsite.Controllers
                     ModelState.AddModelError("", error.Description);
                 }
 
-            }
-            return View(model);
+            ModelState["RoleName"].Errors.Clear();
+            return RedirectToAction("CreateRole","Admin");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public JsonResult DeleteRolet(string DeleteRoleName)
+        {
+            string s;
+            s = "ali";
+            return Json(new {error="",baz="test" });
         }
     }
 }
