@@ -3,8 +3,9 @@
     Layout = "_LayoutAdmin";
     ViewData["Title"] = "CreateRole";
 }
+@using Microsoft.AspNetCore.Antiforgery
+@inject IAntiforgery Antiforgery
 
-<span id="AntiForge"> @Html.AntiForgeryToken() </span>
 
 
 
@@ -18,9 +19,6 @@
     <div class="row">
         <div class="col-md-4">
             <div class="row">
-
-
-
                 <div class="card" style="background-color: #202940 ">
                     <div class="card-header card-header-primary">
                         <h4 class="card-title">Role Actions</h4>
@@ -53,7 +51,7 @@
                                 <h4 class="card-title">Delete Role</h4>
                             </div>
                             <div class="card-body">
-                                <form>
+                                <form method="post" asp-controller="Admin" asp-action="DeleteRole">
                                     <div class="row">
                                         <div class="col-md-12">
                                             <div class="form-group">
@@ -63,7 +61,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <button type="button" onclick="DeleteRole()" class="btn btn-primary pull-right">Delete Role</button>
+                                    <button type="submit" class="btn btn-primary pull-right">Delete Role</button>
 
                                     <div class="clearfix"></div>
                                 </form>
@@ -107,73 +105,45 @@
 
 @section JsScripts
 {
+    <partial name="_ValidationScriptsPartial" />
+
+
     <link href="~/css/dataTable.css" rel="stylesheet" />
     <script src="~/js/CustomDatatable.js"></script>
     <script>
-        function DeleteRole() {
-            var data = $('#DeleteRoleName').val()
-            var url = "@(Url.Action("DeleteRolet", "Admin"))"
-            var token = $('#AntiForge').val();
-            alert(token);
-
-
-
-
-            $.ajax({
-                type: "post",
-                cache: false,
-                contenttype: "application/json; charset=utf-8",
-                url: url,
-                data: { DeleteRoleName: data, },
-                datatype: "json",
-                success: function (data) {
-                    if (data.baz == "test")
-                        alert("baz")
-                },
-                error: function (xhr, err) {
-                    alert("readystate: " + xhr.readystate + "\nstatus: " + xhr.status);
-                    alert("responsetext: " + xhr.responsetext);
-                }
-            })
-        }
-
-
-
-
-
-
         $(document).ready(function () {
             $('#example').DataTable({
                 "pageLength": 5
             });
         });
-
-        var myModal = document.getElementById('myModal')
     </script>
-
-    @{
-        <partial name="_ValidationScriptsPartial" />
-    }
 }
 
 @{
-    if (ViewData.ModelState != null)
+    <script src="~/js/jquery.min.js"></script>
+
+    if (TempData["error"] != null)
     {
-        foreach (var item in ViewData.ModelState)
+        var SomeList = TempData["error"] as IEnumerable<string>;
+
+        foreach (var item in SomeList)
         {
-            if (item.Value.Errors.Any())
-            {
-                <script src="~/js/jquery.min.js"></script>
-                <script>
-
-                    $(document).ready(function () {
-                        sendNotify("@item.Value.Errors[0].ErrorMessage" , "error")
-                    });
-
-                </script>
-            }
-
+            <script>
+                $(document).ready(function () {
+                    sendNotify("@item" , "error")
+                });
+            </script>
         }
+        TempData.Remove("error");
+    }
+    if (TempData["success"] != null)
+    {
+        <script>
+            $(document).ready(function () {
+                sendNotify("@TempData["success"]" , "success")
+            });
+        </script>
+        TempData.Remove("success");
     }
 }
 

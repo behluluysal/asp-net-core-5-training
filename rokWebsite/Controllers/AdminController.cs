@@ -6,6 +6,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Text.Json;
+
+
 
 namespace rokWebsite.Controllers
 {
@@ -35,55 +38,67 @@ namespace rokWebsite.Controllers
             return View(model);
         }
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateRole(CreateRoleViewModel model)
         {
-                IdentityRole identityRole = new IdentityRole
-                {
-                    Name = model.RoleName
-                };
-                IdentityResult result = await roleManager.CreateAsync(identityRole);
-                
-                if (result.Succeeded)
-                {
-                    //add roles back to model for refresh
-                    model.Roles = _db.Roles.ToList();
-                    return View(model);
-                }
+            IdentityRole identityRole = new IdentityRole
+            {
+                Name = model.RoleName
+            };
+            IdentityResult result = await roleManager.CreateAsync(identityRole);
+            if (result.Succeeded)
+            {
+                TempData["success"] = "Role "+ model.RoleName + " saved successfully";
+                return RedirectToAction("CreateRole","Admin");
+            }
+            else
+            {
+                List<string> errorList = new List<string>();
                 foreach (IdentityError error in result.Errors)
                 {
-                    ModelState.AddModelError("", error.Description);
+                    errorList.Add(error.Description);
                 }
-            ModelState["DeleteRoleName"].Errors.Clear();
-            //add roles back to model for refresh
-            model.Roles = _db.Roles.ToList();
-            return View(model);
+                TempData["error"] = errorList;
+                return RedirectToAction("CreateRole", "Admin");
+            }
         }
 
 
 
-        [HttpPost]
-        public async Task<IActionResult> DeleteRole(CreateRoleViewModel model)
-        {
-                IdentityRole identityRole = await roleManager.FindByNameAsync(model.DeleteRoleName);
-                IdentityResult result = await roleManager.DeleteAsync(identityRole);
-                //add roles back to model for refresh
-                model.Roles = _db.Roles.ToList();
-                foreach (IdentityError error in result.Errors)
-                {
-                    ModelState.AddModelError("", error.Description);
-                }
-
-            ModelState["RoleName"].Errors.Clear();
-            return RedirectToAction("CreateRole","Admin");
-        }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public JsonResult DeleteRolet(string DeleteRoleName)
+        public async Task<IActionResult> DeleteRole(CreateRoleViewModel model)
         {
-            string s;
-            s = "ali";
-            return Json(new {error="",baz="test" });
+            List<string> errorList = new List<string>();
+
+            IdentityRole identityRole = await roleManager.FindByNameAsync(model.DeleteRoleName);
+
+            if(identityRole != null)
+            {
+                IdentityResult result = await roleManager.DeleteAsync(identityRole);
+                if (result.Succeeded)
+                {
+                    TempData["success"] = "Role " + model.RoleName + " removed successfully";
+                    return RedirectToAction("CreateRole", "Admin");
+                }
+                else
+                {
+                    foreach (IdentityError error in result.Errors)
+                    {
+                        errorList.Add(error.Description);
+                    }
+                    TempData["error"] = errorList;
+                    return RedirectToAction("CreateRole", "Admin");
+                }
+            }
+            else
+            {
+                errorList.Add("Role named "+model.DeleteRoleName+" could not found");
+                TempData["error"] = errorList;
+                return RedirectToAction("CreateRole", "Admin");
+            }
+           
         }
     }
 }
