@@ -1,0 +1,51 @@
+﻿@model rokWebsite.ViewModels.AssignRoleViewModel
+
+
+
+<div class="card">
+    <div class="card-header card-header-primary">
+        <h4 class="card-title ">Simple Table</h4>
+        <p class="card-category"> Here is a subtitle for this table</p>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table id="example" class="table" >
+                <thead class=" text-primary">
+                    <tr>
+                        <th scope="col" style="min-width:100px">
+                            Name
+                        </th>
+                        <th scope="col" style="min-width:100px">
+                            Activated
+                        </th>
+                        <th scope="col">
+                            Email
+                        </th>
+                        <th scope="col" data-sortable="false">
+
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.Users)
+                    {
+                    <tr>
+                        <td >
+                            @item.UserName
+                        </td>
+                        <td >
+                            @item.Activated
+                        </td>
+                        <td  style="max-width:100px">
+                            @item.Email
+                        </td>
+                        <td>
+                            <button type="button" id="@item.Id" onclick="_GetUserRolesAjax(this.id)" style="background-color: transparent; color: #ffc107; border-color: #ffc107 !important" class="btn btn-outline-warning" onmouseover="this.style.color='#ffc107'" data-bs-toggle="modal" data-bs-target="#exampleModal">Edit</button>
+                        </td>
+                    </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

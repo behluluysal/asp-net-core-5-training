@@ -1,7 +1,7 @@
 ﻿@model rokWebsite.ViewModels.CreateRoleViewModel
 @{
     Layout = "_LayoutAdmin";
-    ViewData["Title"] = "CreateRole";
+    ViewData["Title"] = "IndexRole";
 }
 @using Microsoft.AspNetCore.Antiforgery
 @inject IAntiforgery Antiforgery
@@ -11,9 +11,8 @@
 
 @section HeadScripts
 {
-    <link href="~/css/dataTable.css" rel="stylesheet" />
+<link href="~/css/dataTable.css" rel="stylesheet" />
 }
-
 
 <div class="container">
     <div class="row">
@@ -75,7 +74,7 @@
 
         </div>
         <div class="col-md-8">
-            <partial name="_PartialViews/RolesPartialView" />
+            <partial name="_PartialViews/RoleTablePartial" />
         </div>
     </div>
 </div>
@@ -105,45 +104,46 @@
 
 @section JsScripts
 {
-    <partial name="_ValidationScriptsPartial" />
+<partial name="_ValidationScriptsPartial" />
 
 
-    <link href="~/css/dataTable.css" rel="stylesheet" />
-    <script src="~/js/CustomDatatable.js"></script>
-    <script>
+<link href="~/css/dataTable.css" rel="stylesheet" />
+<script src="~/js/CustomDatatable.js"></script>
+<script>
         $(document).ready(function () {
             $('#example').DataTable({
                 "pageLength": 5
             });
         });
-    </script>
+</script>
 }
 
 @{
-    <script src="~/js/jquery.min.js"></script>
+<script src="~/js/jquery.min.js"></script>
 
     if (TempData["error"] != null)
     {
-        var SomeList = TempData["error"] as IEnumerable<string>;
+        var SomeList = TempData["error"] as IEnumerable<string>
+    ;
 
-        foreach (var item in SomeList)
-        {
-            <script>
+    foreach (var item in SomeList)
+    {
+    <script>
                 $(document).ready(function () {
                     sendNotify("@item" , "error")
                 });
-            </script>
-        }
-        TempData.Remove("error");
+    </script>
+    }
+    TempData.Remove("error");
     }
     if (TempData["success"] != null)
     {
-        <script>
+    <script>
             $(document).ready(function () {
                 sendNotify("@TempData["success"]" , "success")
             });
-        </script>
-        TempData.Remove("success");
+    </script>
+    TempData.Remove("success");
     }
-}
+    }
 

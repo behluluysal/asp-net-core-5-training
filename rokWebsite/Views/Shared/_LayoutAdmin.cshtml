@@ -64,9 +64,9 @@
                             <i class="material-icons">content_paste</i>
                             <p>Role Actions <span class="caret"></span> </p>
                         </a>
-                        <ul class="submenu collapse @(ViewBag.Title =="CreateRole"?"show":"")">
-                            <li class="@(ViewBag.Title =="CreateRole"?"active":"")"><a class="nav-link" asp-action="CreateRole" asp-controller="Admin">Create Role </a></li>
-                            <li><a class="nav-link" href="#">Submenu item 2 </a></li>
+                        <ul class="submenu collapse @(ViewBag.Title =="IndexRole"?"show": ViewBag.Title=="AssignRole"?"show":"")">
+                            <li class="@(ViewBag.Title =="IndexRole"?"active":"")"><a class="nav-link" asp-action="Index" asp-controller="Role">Roles</a></li>
+                            <li class="@(ViewBag.Title =="AssignRole"?"active":"")"><a class="nav-link" asp-action="AssignRole" asp-controller="Role" >Assign Role </a></li>
                             <li><a class="nav-link" href="#">Submenu item 3 </a> </li>
                         </ul>
                     </li>

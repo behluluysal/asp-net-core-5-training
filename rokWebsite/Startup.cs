@@ -53,7 +53,7 @@ namespace rokWebsite
 
             services.AddAuthorization(options =>
             {
-                options.AddPolicy("test1", policy => policy.RequireClaim("Read"));
+                options.AddPolicy("ExecutiveOnly", policy => policy.RequireClaim("Executive"));
             });
 
         }

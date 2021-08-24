@@ -1,0 +1,124 @@
+﻿@using Microsoft.AspNetCore.Antiforgery
+@inject IAntiforgery Antiforgery
+
+@model rokWebsite.ViewModels.AssignRoleViewModel
+@{
+    ViewData["Title"] = "AssignRole";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+@section HeadScripts
+{
+    <link href="~/css/dataTable.css" rel="stylesheet" />
+    <link href="~/lib/switchery/switchery.min.css" rel="stylesheet" />
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <partial name="_PartialViews/UserTablePartial" />
+        </div>
+    </div>
+</div>
+
+
+<!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close"> <span aria-hidden="true">&times;</span></button>
+
+
+            </div>
+            <div class="modal-body" id="RoleSwitches">
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section JsScripts
+{
+    <partial name="_ValidationScriptsPartial" />
+
+
+    <link href="~/css/dataTable.css" rel="stylesheet" />
+    <script src="~/js/CustomDatatable.js"></script>
+    <script src="~/lib/switchery/switchery.min.js"></script>
+
+    <script>
+        function _GetUserRolesAjax(clicked_id) {
+           
+            var AllRoles = [];
+            var AllRoleNames = [];
+            @foreach (var item in Model.Roles)
+            {
+                @:AllRoles.push("@item.Id")
+                @:AllRoleNames.push("@item.Name")
+            }
+            // 2 dizide aynı indexlerde Id ve name tutuluyor, response döngüsünde element id ve text olarak rolename atanabilmesi için
+            var i = 0;
+            $.ajax({
+                type: "post",
+                headers: { RequestVerificationToken: "@Antiforgery.GetTokens(Context).RequestToken"},
+                cache: false,
+                contenttype: "application/json; charset=utf-8",
+                url: '@Url.Action("GetUserRoles", "Role")',
+                data: { userId: clicked_id },
+                datatype: "json",
+                success: function (response) {
+                    $("#RoleSwitches").html("");
+                    for (const val of AllRoles) {
+                        if (response.includes(val)) {
+                            document.querySelector("#RoleSwitches").insertAdjacentHTML('afterbegin', `<div class="form-check form-switch" id="${val}"><input type="checkbox" class="js-switch" id="test" checked /><label class="form-check-label" for="flexSwitchCheckDefault">${AllRoleNames[i]}</label></div>`);
+                        }
+                        else {
+                            document.querySelector("#RoleSwitches").insertAdjacentHTML('afterbegin', `<div class="form-check form-switch" id="${val}"><input type="checkbox" class="js-switch" id="test" /><label class="form-check-label" for="flexSwitchCheckDefault">${AllRoleNames[i]}</label></div>`);
+                        }
+                        i++;
+                        convertToSwitchery();
+                    }
+                },
+                error: function(response) {
+                    alert("err")
+                }
+            })
+        };
+
+
+        function convertToSwitchery() {
+
+            // get all "js-switch" class inputs in the DOM
+            const jsSwitchInputs = document.querySelectorAll('.js-switch');
+
+            jsSwitchInputs.forEach(input => {
+                // ignore if input is already switchery
+                if (input.dataset.switchery) {
+                    return;
+                }
+                // create new Switchery object
+                new Switchery(input);
+            });
+        }
+
+        $(document).ready(function () {
+            $('#example').DataTable({
+                "pageLength": 5
+            });
+
+            var elems = Array.prototype.slice.call(document.querySelectorAll('.js-switch'));
+            elems.forEach(function (html) {
+                var switchery = new Switchery(html);
+            });
+
+        });
+    </script>
+}
+
