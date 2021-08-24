@@ -106,7 +106,6 @@ namespace rokWebsite.Controllers
         public async Task<JsonResult> GetUserRoles(string userId)
         {
             var user = await userManager.FindByIdAsync(userId);
-            await userManager.AddToRoleAsync(user, "test2");
             var roles = await userManager.GetRolesAsync(user);
             List<string> RoleIds = new List<string>();
             foreach (var item in roles)
@@ -117,6 +116,42 @@ namespace rokWebsite.Controllers
             return Json(RoleIds);
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<JsonResult> SwitchUserRole(string UserId, string RoleId)
+        {
+            var user = await userManager.FindByIdAsync(UserId);
+            var role = await roleManager.FindByIdAsync(RoleId);
+
+            //try to add the role
+            IdentityResult result = await userManager.AddToRoleAsync(user,role.Name);
+            if(result.Succeeded)
+            {
+                return Json(new
+                {
+                    Data = "Role " + role.Name + " successfully added to user " + user.UserName,
+                    ContentType = "success",
+                });
+            }
+            else
+            {
+                //if failed, try to remove the role
+                IdentityResult resultDelete = await userManager.RemoveFromRoleAsync(user, role.Name);
+                if(resultDelete.Succeeded)
+                {
+                    return Json(new
+                    {
+                        Data = "Role " + role.Name + " successfully removed from user " + user.UserName,
+                        ContentType = "success",
+                    });
+                }
+            }
+            return Json(new
+            {
+                Data = "Something went wrong",
+                ContentType = "error",
+            });
+        }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
