@@ -7,6 +7,7 @@ using rokWebsite.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace rokWebsite.Controllers
@@ -27,15 +28,16 @@ namespace rokWebsite.Controllers
 
         public IActionResult Index()
         {
-            CreateRoleViewModel model = new CreateRoleViewModel();
+            RoleAndClaims model = new RoleAndClaims();
             model.Roles = _db.Roles.ToList();
+            model.Claims = _db.RoleClaims.ToList();
             return View(model);
         }
 
        
         public IActionResult AssignClaims()
         {
-            CreateRoleViewModel model = new CreateRoleViewModel();
+            RoleAndClaims model = new RoleAndClaims();
             model.Roles = _db.Roles.ToList();
             return View(model);
         }
@@ -43,7 +45,7 @@ namespace rokWebsite.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateRole(CreateRoleViewModel model)
+        public async Task<IActionResult> CreateRole(RoleAndClaims model)
         {
             IdentityRole identityRole = new IdentityRole
             {
@@ -77,7 +79,7 @@ namespace rokWebsite.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AssignRole(CreateRoleViewModel model)
+        public async Task<IActionResult> AssignRole(RoleAndClaims model)
         {
             IdentityRole identityRole = new IdentityRole
             {
@@ -107,13 +109,17 @@ namespace rokWebsite.Controllers
         {
             var user = await userManager.FindByIdAsync(userId);
             var roles = await userManager.GetRolesAsync(user);
-            List<string> RoleIds = new List<string>();
-            foreach (var item in roles)
-            {
-                var roleId = await roleManager.FindByNameAsync(item);
-                RoleIds.Add(roleId.Id);
-            }
+            List<string> RoleIds = _db.UserRoles.Where(x => x.UserId == userId).Select(x => x.RoleId).ToList();
             return Json(RoleIds);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<JsonResult> GetRoleClaims(string RoleId)
+        {
+            var role = await roleManager.FindByIdAsync(RoleId);
+            List<int> ClaimIds = _db.RoleClaims.Where(x => x.RoleId == role.Id).Select(x=>x.Id).ToList();
+            return Json(ClaimIds);
         }
 
         [HttpPost]
@@ -155,7 +161,48 @@ namespace rokWebsite.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteRole(CreateRoleViewModel model)
+        public async Task<JsonResult> SwitchRoleClaim(string RoleId, int ClaimId)
+        {
+            var role = await roleManager.FindByIdAsync(RoleId);
+
+            //Check if Claim exists in role
+            var claim = _db.RoleClaims.Where(x => x.Id == ClaimId).FirstOrDefault();
+           
+            if(claim == null)
+            {
+                IdentityResult result= await roleManager.AddClaimAsync(role, new Claim(claim.ClaimType,claim.ClaimValue));
+                if(result.Succeeded)
+                {
+                    return Json(new
+                    {
+                        Data = "Claim "+claim.ClaimValue+" successfully added to " + role.Name,
+                        ContentType = "success",
+                    });
+                }
+            }
+            else
+            {
+                IdentityResult result = await roleManager.RemoveClaimAsync(role, new Claim(claim.ClaimType,claim.ClaimValue));
+                if(result.Succeeded)
+                {
+                    return Json(new
+                    {
+                        Data = "Claim " + claim.ClaimValue + " successfully removed from " + role.Name,
+                        ContentType = "success",
+                    });
+                }
+            }
+            //If both results go into else statement, it will end up here.
+            return Json(new
+            {
+                Data = "There was an unknown error.",
+                ContentType = "error",
+            });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteRole(RoleAndClaims model)
         {
             List<string> errorList = new List<string>();
 

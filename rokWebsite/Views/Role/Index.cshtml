@@ -1,4 +1,4 @@
-﻿@model rokWebsite.ViewModels.CreateRoleViewModel
+﻿@model rokWebsite.ViewModels.RoleAndClaims
 @{
     Layout = "_LayoutAdmin";
     ViewData["Title"] = "IndexRole";
@@ -11,7 +11,8 @@
 
 @section HeadScripts
 {
-<link href="~/css/dataTable.css" rel="stylesheet" />
+    <link href="~/css/dataTable.css" rel="stylesheet" />
+    <link href="~/lib/switchery/switchery.min.css" rel="stylesheet" />
 }
 
 <div class="container">
@@ -87,11 +88,9 @@
             <div class="modal-header">
                 <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
                 <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close"> <span aria-hidden="true">&times;</span></button>
-
-
             </div>
-            <div class="modal-body">
-                ...
+            <div class="modal-body" id="ClaimSwitches">
+               
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -104,46 +103,140 @@
 
 @section JsScripts
 {
-<partial name="_ValidationScriptsPartial" />
+    <partial name="_ValidationScriptsPartial" />
 
 
-<link href="~/css/dataTable.css" rel="stylesheet" />
-<script src="~/js/CustomDatatable.js"></script>
-<script>
+    <script src="~/js/CustomDatatable.js"></script>
+    <script src="~/lib/switchery/switchery.min.js"></script>
+
+
+    <script>
+        var roleId; //global
+
         $(document).ready(function () {
             $('#example').DataTable({
                 "pageLength": 5
             });
         });
-</script>
+
+        function _GetRoleClaims(clicked_id) {
+            roleId = clicked_id;
+            var AllClaims = [];
+            var AllClaimNames = [];
+            @foreach (var item in Model.Claims)
+            {
+                @:AllClaims.push(@item.Id) //We didn't use string because this time id's are int
+                @:AllClaimNames.push("@item.ClaimValue")
+            }
+            // 2 dizide aynı indexlerde Id ve name tutuluyor, response döngüsünde element id ve text olarak rolename atanabilmesi için
+            var i = 0;
+            $.ajax({
+                type: "post",
+                headers: { RequestVerificationToken: "@Antiforgery.GetTokens(Context).RequestToken"},
+                cache: false,
+                contenttype: "application/json; charset=utf-8",
+                url: '@Url.Action("GetRoleClaims", "Role")',
+                data: { RoleId: clicked_id },
+                datatype: "json",
+                success: function (response) {
+                    $("#RoleSwitches").html("");
+                    for (const val of AllClaims) {
+                        if (response.includes(val)) {
+                            document.querySelector("#ClaimSwitches").insertAdjacentHTML('afterbegin', `<div class="form-check form-switch" id="${val}"><input type="checkbox" class="js-switch" id="test" checked /><label style="color:black" class="form-check-label" for="flexSwitchCheckDefault">${AllClaimNames[i]}</label></div>`);
+                        }
+                        else {
+                            document.querySelector("#ClaimSwitches").insertAdjacentHTML('afterbegin', `<div class="form-check form-switch" id="${val}"><input type="checkbox" class="js-switch" id="test" /><label style="color:black" class="form-check-label" for="flexSwitchCheckDefault">${AllClaimNames[i]}</label></div>`);
+                        }
+                        i++;
+                    }
+                    convertToSwitchery();
+                    AddListener();
+                },
+                error: function(response) {
+                    alert("err")
+                }
+            })
+        };
+
+       function convertToSwitchery() {
+
+        // get all "js-switch" class inputs in the DOM
+        const jsSwitchInputs = document.querySelectorAll('.js-switch');
+
+        jsSwitchInputs.forEach(input => {
+            // ignore if input is already switchery
+            if (input.dataset.switchery) {
+                return;
+            }
+            // create new Switchery object
+            new Switchery(input);
+        });
+
+    }
+
+
+    function AddListener() {
+        const switches = document.querySelectorAll('.switchery');
+        var i = 0;
+        switches.forEach(inputs => {
+            inputs.id = "tempId" + i;
+            inputs.addEventListener('click', function () {
+                $.ajax({
+                    type: "post",
+                    headers: { RequestVerificationToken: "@Antiforgery.GetTokens(Context).RequestToken"},
+                    cache: false,
+                    contenttype: "application/json; charset=utf-8",
+                    url: '@Url.Action("SwitchRoleClaim", "Role")',
+                    data: { RoleId: roleId, ClaimId: $('#' + inputs.id).parent().attr('id')},
+                    datatype: "json",
+                    success: function (response) {
+                        if (response.contentType == "success") {
+
+                            sendNotify(response.data , "success")
+                        }
+                        else {
+                            sendNotify(response.data, "danger")
+                        }
+                    },
+                    error: function(response) {
+                        alert("err")
+                    }
+                })
+            })
+            i++;
+        });
+    }
+
+
+    </script>
 }
 
 @{
-<script src="~/js/jquery.min.js"></script>
+    <script src="~/js/jquery.min.js"></script>
 
     if (TempData["error"] != null)
     {
         var SomeList = TempData["error"] as IEnumerable<string>
     ;
 
-    foreach (var item in SomeList)
-    {
-    <script>
+        foreach (var item in SomeList)
+        {
+            <script>
                 $(document).ready(function () {
                     sendNotify("@item" , "error")
                 });
-    </script>
-    }
-    TempData.Remove("error");
+            </script>
+        }
+        TempData.Remove("error");
     }
     if (TempData["success"] != null)
     {
-    <script>
+        <script>
             $(document).ready(function () {
                 sendNotify("@TempData["success"]" , "success")
             });
-    </script>
-    TempData.Remove("success");
+        </script>
+        TempData.Remove("success");
     }
-    }
+}
 

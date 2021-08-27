@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace rokWebsite.ViewModels
 {
-    public class CreateRoleViewModel
+    public class RoleAndClaims
     {
         [Required]
         public string RoleName { get; set; }
@@ -16,5 +16,6 @@ namespace rokWebsite.ViewModels
         public string DeleteRoleName { get; set; }
 
         public List<IdentityRole> Roles { get; set; }
+        public List<IdentityRoleClaim<string>> Claims { get ; set; }
     }
 }

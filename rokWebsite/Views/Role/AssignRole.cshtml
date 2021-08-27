@@ -51,109 +51,109 @@
     <script src="~/js/CustomDatatable.js"></script>
     <script src="~/lib/switchery/switchery.min.js"></script>
 
-    <script>
-        var userId; //global
+<script>
+    var userId; //global
 
-        function _GetUserRolesAjax(clicked_id) {
-            userId = clicked_id;
-            var AllRoles = [];
-            var AllRoleNames = [];
-            @foreach (var item in Model.Roles)
-            {
-                @:AllRoles.push("@item.Id")
-                @:AllRoleNames.push("@item.Name")
+    function _GetUserRolesAjax(clicked_id) {
+        userId = clicked_id;
+        var AllRoles = [];
+        var AllRoleNames = [];
+        @foreach (var item in Model.Roles)
+        {
+            @:AllRoles.push("@item.Id")
+            @:AllRoleNames.push("@item.Name")
+        }
+        // 2 dizide aynı indexlerde Id ve name tutuluyor, response döngüsünde element id ve text olarak rolename atanabilmesi için
+        var i = 0;
+        $.ajax({
+            type: "post",
+            headers: { RequestVerificationToken: "@Antiforgery.GetTokens(Context).RequestToken"},
+            cache: false,
+            contenttype: "application/json; charset=utf-8",
+            url: '@Url.Action("GetUserRoles", "Role")',
+            data: { userId: clicked_id },
+            datatype: "json",
+            success: function (response) {
+                $("#RoleSwitches").html("");
+                for (const val of AllRoles) {
+                    if (response.includes(val)) {
+                        document.querySelector("#RoleSwitches").insertAdjacentHTML('afterbegin', `<div class="form-check form-switch" id="${val}"><input type="checkbox" class="js-switch" id="test" checked /><label style="color:black" class="form-check-label" for="flexSwitchCheckDefault">${AllRoleNames[i]}</label></div>`);
+                    }
+                    else {
+                        document.querySelector("#RoleSwitches").insertAdjacentHTML('afterbegin', `<div class="form-check form-switch" id="${val}"><input type="checkbox" class="js-switch" id="test" /><label style="color:black" class="form-check-label" for="flexSwitchCheckDefault">${AllRoleNames[i]}</label></div>`);
+                    }
+                    i++;
+
+                }
+                convertToSwitchery();
+                AddListener();
+            },
+            error: function(response) {
+                alert("err")
             }
-            // 2 dizide aynı indexlerde Id ve name tutuluyor, response döngüsünde element id ve text olarak rolename atanabilmesi için
-            var i = 0;
-            $.ajax({
-                type: "post",
-                headers: { RequestVerificationToken: "@Antiforgery.GetTokens(Context).RequestToken"},
-                cache: false,
-                contenttype: "application/json; charset=utf-8",
-                url: '@Url.Action("GetUserRoles", "Role")',
-                data: { userId: clicked_id },
-                datatype: "json",
-                success: function (response) {
-                    $("#RoleSwitches").html("");
-                    for (const val of AllRoles) {
-                        if (response.includes(val)) {
-                            document.querySelector("#RoleSwitches").insertAdjacentHTML('afterbegin', `<div class="form-check form-switch" id="${val}"><input type="checkbox" class="js-switch" id="test" checked /><label style="color:black" class="form-check-label" for="flexSwitchCheckDefault">${AllRoleNames[i]}</label></div>`);
+        })
+    };
+
+
+    function convertToSwitchery() {
+
+        // get all "js-switch" class inputs in the DOM
+        const jsSwitchInputs = document.querySelectorAll('.js-switch');
+
+        jsSwitchInputs.forEach(input => {
+            // ignore if input is already switchery
+            if (input.dataset.switchery) {
+                return;
+            }
+            // create new Switchery object
+            new Switchery(input);
+        });
+
+    }
+
+
+    function AddListener() {
+        const switches = document.querySelectorAll('.switchery');
+        var i = 0;
+        switches.forEach(inputs => {
+            inputs.id = "tempId" + i;
+            inputs.addEventListener('click', function () {
+                $.ajax({
+                    type: "post",
+                    headers: { RequestVerificationToken: "@Antiforgery.GetTokens(Context).RequestToken"},
+                    cache: false,
+                    contenttype: "application/json; charset=utf-8",
+                    url: '@Url.Action("SwitchUserRole", "Role")',
+                    data: { UserId: userId, RoleId: $('#' + inputs.id).parent().attr('id')},
+                    datatype: "json",
+                    success: function (response) {
+                        if (response.contentType == "success") {
+                                
+                            sendNotify(response.data , "success")
                         }
                         else {
-                            document.querySelector("#RoleSwitches").insertAdjacentHTML('afterbegin', `<div class="form-check form-switch" id="${val}"><input type="checkbox" class="js-switch" id="test" /><label style="color:black" class="form-check-label" for="flexSwitchCheckDefault">${AllRoleNames[i]}</label></div>`);
+                            sendNotify(response.data, "danger")
                         }
-                        i++;
-
+                    },
+                    error: function(response) {
+                        alert("err")
                     }
-                    convertToSwitchery();
-                    AddListener();
-                },
-                error: function(response) {
-                    alert("err")
-                }
-            })
-        };
-
-
-        function convertToSwitchery() {
-
-            // get all "js-switch" class inputs in the DOM
-            const jsSwitchInputs = document.querySelectorAll('.js-switch');
-
-            jsSwitchInputs.forEach(input => {
-                // ignore if input is already switchery
-                if (input.dataset.switchery) {
-                    return;
-                }
-                // create new Switchery object
-                new Switchery(input);
-            });
-
-        }
-
-
-        function AddListener() {
-            const switches = document.querySelectorAll('.switchery');
-            var i = 0;
-            switches.forEach(inputs => {
-                inputs.id = "tempId" + i;
-                inputs.addEventListener('click', function () {
-                    $.ajax({
-                        type: "post",
-                        headers: { RequestVerificationToken: "@Antiforgery.GetTokens(Context).RequestToken"},
-                        cache: false,
-                        contenttype: "application/json; charset=utf-8",
-                        url: '@Url.Action("SwitchUserRole", "Role")',
-                        data: { UserId: userId, RoleId: $('#' + inputs.id).parent().attr('id')},
-                        datatype: "json",
-                        success: function (response) {
-                            if (response.contentType == "success") {
-                                
-                                sendNotify(response.data , "success")
-                            }
-                            else {
-                                sendNotify(response.data, "danger")
-                            }
-                        },
-                        error: function(response) {
-                            alert("err")
-                        }
-                    })
                 })
-                i++;
-            });
-        }
-        $(document).ready(function () {
-            $('#example').DataTable({
-                "pageLength": 5
-            });
-
-            var elems = Array.prototype.slice.call(document.querySelectorAll('.js-switch'));
-            elems.forEach(function (html) {
-                var switchery = new Switchery(html);
-            });
-
+            })
+            i++;
         });
-    </script>
+    }
+    $(document).ready(function () {
+        $('#example').DataTable({
+            "pageLength": 5
+        });
+
+        var elems = Array.prototype.slice.call(document.querySelectorAll('.js-switch'));
+        elems.forEach(function (html) {
+            var switchery = new Switchery(html);
+        });
+
+    });
+</script>
 }
 
