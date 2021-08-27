@@ -16,6 +16,6 @@ namespace rokWebsite.ViewModels
         public string DeleteRoleName { get; set; }
 
         public List<IdentityRole> Roles { get; set; }
-        public List<IdentityRoleClaim<string>> Claims { get ; set; }
+        public List<string> Claims { get ; set; }
     }
 }

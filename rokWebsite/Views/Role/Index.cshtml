@@ -121,12 +121,11 @@
 
         function _GetRoleClaims(clicked_id) {
             roleId = clicked_id;
-            var AllClaims = [];
+
             var AllClaimNames = [];
             @foreach (var item in Model.Claims)
             {
-                @:AllClaims.push(@item.Id) //We didn't use string because this time id's are int
-                @:AllClaimNames.push("@item.ClaimValue")
+                @:AllClaimNames.push("@item")
             }
             // 2 dizide aynı indexlerde Id ve name tutuluyor, response döngüsünde element id ve text olarak rolename atanabilmesi için
             var i = 0;
@@ -139,13 +138,13 @@
                 data: { RoleId: clicked_id },
                 datatype: "json",
                 success: function (response) {
-                    $("#RoleSwitches").html("");
-                    for (const val of AllClaims) {
+                    $("#ClaimSwitches").html("");
+                    for (const val of AllClaimNames) {
                         if (response.includes(val)) {
-                            document.querySelector("#ClaimSwitches").insertAdjacentHTML('afterbegin', `<div class="form-check form-switch" id="${val}"><input type="checkbox" class="js-switch" id="test" checked /><label style="color:black" class="form-check-label" for="flexSwitchCheckDefault">${AllClaimNames[i]}</label></div>`);
+                            document.querySelector("#ClaimSwitches").insertAdjacentHTML('afterbegin', `<div class="form-check form-switch" id="${val}"><input type="checkbox" class="js-switch" id="test" checked /><label style="color:black" class="form-check-label" for="flexSwitchCheckDefault">${val}</label></div>`);
                         }
                         else {
-                            document.querySelector("#ClaimSwitches").insertAdjacentHTML('afterbegin', `<div class="form-check form-switch" id="${val}"><input type="checkbox" class="js-switch" id="test" /><label style="color:black" class="form-check-label" for="flexSwitchCheckDefault">${AllClaimNames[i]}</label></div>`);
+                            document.querySelector("#ClaimSwitches").insertAdjacentHTML('afterbegin', `<div class="form-check form-switch" id="${val}"><input type="checkbox" class="js-switch" id="test" /><label style="color:black" class="form-check-label" for="flexSwitchCheckDefault">${val}</label></div>`);
                         }
                         i++;
                     }
@@ -178,6 +177,7 @@
     function AddListener() {
         const switches = document.querySelectorAll('.switchery');
         var i = 0;
+        var tempString = "";
         switches.forEach(inputs => {
             inputs.id = "tempId" + i;
             inputs.addEventListener('click', function () {
@@ -187,7 +187,7 @@
                     cache: false,
                     contenttype: "application/json; charset=utf-8",
                     url: '@Url.Action("SwitchRoleClaim", "Role")',
-                    data: { RoleId: roleId, ClaimId: $('#' + inputs.id).parent().attr('id')},
+                    data: { RoleId: roleId, ClaimValue: "" + $('#' + inputs.id).parent().attr('id').toString()},
                     datatype: "json",
                     success: function (response) {
                         if (response.contentType == "success") {

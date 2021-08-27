@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using rokWebsite.Data;
 using rokWebsite.Models;
+using rokWebsite.Utility;
 using rokWebsite.ViewModels;
 using System;
 using System.Collections.Generic;
@@ -30,11 +31,14 @@ namespace rokWebsite.Controllers
         {
             RoleAndClaims model = new RoleAndClaims();
             model.Roles = _db.Roles.ToList();
-            model.Claims = _db.RoleClaims.ToList();
+            model.Claims = new List<string>();
+            model.Claims.Add(UserPermissions.Add);
+            model.Claims.Add(UserPermissions.Edit);
+            model.Claims.Add(UserPermissions.EditRole);
             return View(model);
         }
 
-       
+        
         public IActionResult AssignClaims()
         {
             RoleAndClaims model = new RoleAndClaims();
@@ -118,7 +122,7 @@ namespace rokWebsite.Controllers
         public async Task<JsonResult> GetRoleClaims(string RoleId)
         {
             var role = await roleManager.FindByIdAsync(RoleId);
-            List<int> ClaimIds = _db.RoleClaims.Where(x => x.RoleId == role.Id).Select(x=>x.Id).ToList();
+            List<string> ClaimIds = _db.RoleClaims.Where(x => x.RoleId == role.Id).Select(x=>x.ClaimValue).ToList();
             return Json(ClaimIds);
         }
 
@@ -161,28 +165,32 @@ namespace rokWebsite.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<JsonResult> SwitchRoleClaim(string RoleId, int ClaimId)
+        public async Task<JsonResult> SwitchRoleClaim(string RoleId, string ClaimValue)
         {
-            var role = await roleManager.FindByIdAsync(RoleId);
-
+            string rr = RoleId;
+            string tt = ClaimValue;
             //Check if Claim exists in role
-            var claim = _db.RoleClaims.Where(x => x.Id == ClaimId).FirstOrDefault();
-           
+            var claim = _db.RoleClaims.Where(x => x.ClaimValue == ClaimValue && x.RoleId == RoleId).FirstOrDefault();
+            var user = await userManager.FindByNameAsync("tesali");
+            await userManager.AddClaimAsync(user, new Claim(CustomClaimTypes.Permission, UserPermissions.Add));
             if(claim == null)
             {
-                IdentityResult result= await roleManager.AddClaimAsync(role, new Claim(claim.ClaimType,claim.ClaimValue));
+                var role = await roleManager.FindByIdAsync(RoleId);
+                IdentityResult result= await roleManager.AddClaimAsync(role, new Claim(CustomClaimTypes.Permission, ClaimValue));
                 if(result.Succeeded)
                 {
                     return Json(new
                     {
-                        Data = "Claim "+claim.ClaimValue+" successfully added to " + role.Name,
+                        Data = "Claim "+ClaimValue+" successfully added to " + role.Name,
                         ContentType = "success",
                     });
                 }
             }
             else
             {
-                IdentityResult result = await roleManager.RemoveClaimAsync(role, new Claim(claim.ClaimType,claim.ClaimValue));
+                var role = await roleManager.FindByIdAsync(RoleId);
+                IdentityResult result = await roleManager.RemoveClaimAsync(role, new Claim(CustomClaimTypes.Permission, ClaimValue));
+                string t = ClaimValue;
                 if(result.Succeeded)
                 {
                     return Json(new

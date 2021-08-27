@@ -11,6 +11,7 @@ using Microsoft.Extensions.Hosting;
 using rokWebsite.Data;
 using rokWebsite.Models;
 using rokWebsite.Services;
+using rokWebsite.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -53,7 +54,7 @@ namespace rokWebsite
 
             services.AddAuthorization(options =>
             {
-                options.AddPolicy("ExecutiveOnly", policy => policy.RequireClaim("Executive"));
+                options.AddPolicy("EmployeeOnly", policy => policy.RequireClaim(CustomClaimTypes.Permission, UserPermissions.Add));
             });
 
         }
