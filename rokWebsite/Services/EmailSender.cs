@@ -23,7 +23,7 @@ namespace rokWebsite.Services
                 {
                     client.Port = 587;
                     client.UseDefaultCredentials = false;
-                    client.Credentials = new NetworkCredential("s.b.uysal991@gmail.com", "582behlul54!123rammus321");
+                    client.Credentials = new NetworkCredential("s.b.uysal991@gmail.com", "notarealassword");
                     client.EnableSsl = true;
                     client.Send(message);
                 }
