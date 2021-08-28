@@ -25,9 +25,6 @@ namespace rokWebsite.Utility
             {
                 return;
             }
-
-            // Get all the roles the user belongs to and check if any of the roles has the permission required
-            // for the authorization to succeed.
             var user = await _userManager.GetUserAsync(context.User);
             var userRoleNames = await _userManager.GetRolesAsync(user);
             var userRoles = _roleManager.Roles.Where(x => userRoleNames.Contains(x.Name));
@@ -36,8 +33,7 @@ namespace rokWebsite.Utility
             {
                 var roleClaims = await _roleManager.GetClaimsAsync(role);
                 var permissions = roleClaims.Where(x => x.Type == CustomClaimTypes.Permission &&
-                                                        x.Value == requirement.Permission &&
-                                                        x.Issuer == "LOCAL AUTHORITY")
+                                                        x.Value == requirement.Permission)
                                             .Select(x => x.Value);
 
                 if (permissions.Any())

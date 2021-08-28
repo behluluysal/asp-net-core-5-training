@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using rokWebsite.Data;
 
 namespace rokWebsite.Data.Migrations
 {
     [DbContext(typeof(KingdomDbContext))]
-    partial class KingdomDbContextModelSnapshot : ModelSnapshot
+    [Migration("20210828033536_AddedKvkTables")]
+    partial class AddedKvkTables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

@@ -15,5 +15,7 @@ namespace rokWebsite.Models
         [Display(Name = "Kingdom Name", Description = "Kingdom Name")]
         [StringLength(6, ErrorMessage = "Kingdom must be shorter than 6 characters")]
         public string Name { get; set; }
+
+        public virtual ICollection<Kvk> Kvks { get; set; }
     }
 }

@@ -11,5 +11,6 @@ namespace rokWebsite.Models
     {
         public bool Activated { get; set; }
         public virtual Alliance Alliance { get; set; }
+        public virtual ICollection<KvkPlayers> KvkPlayers { get; set; }
     }
 }
