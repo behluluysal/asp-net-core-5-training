@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -49,12 +50,24 @@ namespace rokWebsite
 
             services.AddTransient<IEmailSender, EmailSender>();
 
+            services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
+
             services.AddControllersWithViews();
             services.AddRazorPages();
 
             services.AddAuthorization(options =>
             {
-                options.AddPolicy("EmployeeOnly", policy => policy.RequireClaim(CustomClaimTypes.Permission, UserPermissions.Add));
+                options.AddPolicy(Permissions.Dashboards.View, builder =>
+                {
+                    builder.AddRequirements(new PermissionRequirement(Permissions.Dashboards.View));
+                });
+
+                options.AddPolicy(Permissions.Dashboards.Create, builder =>
+                {
+                    builder.AddRequirements(new PermissionRequirement(Permissions.Dashboards.Create));
+                });
+
+                // The rest omitted for brevity.
             });
 
         }

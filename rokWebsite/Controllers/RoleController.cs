@@ -32,9 +32,8 @@ namespace rokWebsite.Controllers
             RoleAndClaims model = new RoleAndClaims();
             model.Roles = _db.Roles.ToList();
             model.Claims = new List<string>();
-            model.Claims.Add(UserPermissions.Add);
-            model.Claims.Add(UserPermissions.Edit);
-            model.Claims.Add(UserPermissions.EditRole);
+            model.Claims = model.Claims.Concat(Permissions.Dashboards._metrics).ToList();
+            model.Claims = model.Claims.Concat(Permissions.Users._metrics).ToList();
             return View(model);
         }
 
@@ -172,7 +171,7 @@ namespace rokWebsite.Controllers
             //Check if Claim exists in role
             var claim = _db.RoleClaims.Where(x => x.ClaimValue == ClaimValue && x.RoleId == RoleId).FirstOrDefault();
             var user = await userManager.FindByNameAsync("tesali");
-            await userManager.AddClaimAsync(user, new Claim(CustomClaimTypes.Permission, UserPermissions.Add));
+          
             if(claim == null)
             {
                 var role = await roleManager.FindByIdAsync(RoleId);

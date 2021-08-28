@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using rokWebsite.Models;
+using rokWebsite.Utility;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -10,6 +11,7 @@ using System.Threading.Tasks;
 
 namespace rokWebsite.Controllers
 {
+    [Authorize]
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
@@ -19,12 +21,13 @@ namespace rokWebsite.Controllers
             _logger = logger;
         }
 
+        [AllowAnonymous]
         public IActionResult Index()
         {
             return View();
         }
 
-        [Authorize(Policy = "EmployeeOnly")]
+        [Authorize(Permissions.Dashboards.View)]
         public IActionResult Privacy()
         {
             return View();
