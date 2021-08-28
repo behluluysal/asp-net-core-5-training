@@ -12,6 +12,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
 using rokWebsite.Models;
+using Microsoft.Extensions.Caching.Memory;
+using rokWebsite.Utility;
+using System.Security.Claims;
 
 namespace rokWebsite.Areas.Identity.Pages.Account
 {
@@ -20,15 +23,19 @@ namespace rokWebsite.Areas.Identity.Pages.Account
     {
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
         private readonly ILogger<LoginModel> _logger;
+        private readonly IMemoryCache _cache;
 
         public LoginModel(SignInManager<User> signInManager, 
             ILogger<LoginModel> logger,
-            UserManager<User> userManager)
+            UserManager<User> userManager, IMemoryCache memoryCache, RoleManager<IdentityRole> roleManager)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _logger = logger;
+            _cache = memoryCache;
+            _roleManager = roleManager;
         }
 
         [BindProperty]
@@ -85,6 +92,44 @@ namespace rokWebsite.Areas.Identity.Pages.Account
                 if (result.Succeeded)
                 {
                     _logger.LogInformation("User logged in.");
+                    var user = await _userManager.FindByNameAsync(Input.Username);
+                    var userRoleNames = await _userManager.GetRolesAsync(user);
+                    var userRoles = _roleManager.Roles.Where(x => userRoleNames.Contains(x.Name));
+                    List<Claim> roleClaims = new List<Claim>();
+                    foreach (var role in userRoles)
+                    {
+                        var temp = await _roleManager.GetClaimsAsync(role);
+                        roleClaims = roleClaims.Concat(temp).ToList();
+                    }
+                    string RolesOfUser = Input.Username + "Roles";
+                    string ClaimsOfUserRole = Input.Username + "Claims";
+                    var temp2 = userRoleNames;
+                    if (!_cache.TryGetValue(RolesOfUser, out temp2))
+                    {
+                        //Burada cache için belirli ayarlamaları yapıyoruz.Cache süresi,önem derecesi gibi
+                        var cacheExpOptions = new MemoryCacheEntryOptions
+                        {
+                            AbsoluteExpiration = DateTime.Now.AddMinutes(30),
+                            Priority = CacheItemPriority.Normal
+                        };
+                        //Bu satırda belirlediğimiz key'e göre ve ayarladığımız cache özelliklerine göre kategorilerimizi in-memory olarak cache'liyoruz.
+                        _cache.Set(RolesOfUser, userRoleNames, cacheExpOptions);
+                    }
+
+                    List<Claim> temp3 = roleClaims;
+                    if (!_cache.TryGetValue(ClaimsOfUserRole, out temp3))
+                    {
+                        //Burada cache için belirli ayarlamaları yapıyoruz.Cache süresi,önem derecesi gibi
+                        var cacheExpOptions = new MemoryCacheEntryOptions
+                        {
+                            AbsoluteExpiration = DateTime.Now.AddMinutes(30),
+                            Priority = CacheItemPriority.Normal
+                        };
+                        //Bu satırda belirlediğimiz key'e göre ve ayarladığımız cache özelliklerine göre kategorilerimizi in-memory olarak cache'liyoruz.
+                       
+                        _cache.Set(ClaimsOfUserRole, roleClaims, cacheExpOptions);
+                    }
+
                     return LocalRedirect(returnUrl);
                 }
                 if (result.RequiresTwoFactor)

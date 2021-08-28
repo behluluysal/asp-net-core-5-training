@@ -54,6 +54,7 @@ namespace rokWebsite
 
             services.AddControllersWithViews();
             services.AddRazorPages();
+            services.AddMemoryCache();
 
             services.AddAuthorization(options =>
             {
