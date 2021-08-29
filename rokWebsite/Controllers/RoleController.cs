@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 using rokWebsite.Data;
 using rokWebsite.Models;
 using rokWebsite.Utility;
@@ -15,16 +16,17 @@ namespace rokWebsite.Controllers
 {
     public class RoleController : Controller
     {
-        private readonly RoleManager<IdentityRole> roleManager;
-        private readonly UserManager<User> userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly UserManager<User> _userManager;
         private readonly KingdomDbContext _db;
+        private readonly IMemoryCache _memoryCache;
 
-
-        public RoleController(RoleManager<IdentityRole> roleManager, KingdomDbContext db, UserManager<User> userManager)
+        public RoleController(RoleManager<IdentityRole> roleManager, KingdomDbContext db, UserManager<User> userManager, IMemoryCache memoryCache)
         {
-            this.roleManager = roleManager;
-            this.userManager = userManager;
             _db = db;
+            _roleManager = roleManager;
+            _userManager = userManager;
+            _memoryCache = memoryCache;
         }
 
         public IActionResult Index()
@@ -54,7 +56,7 @@ namespace rokWebsite.Controllers
             {
                 Name = model.RoleName
             };
-            IdentityResult result = await roleManager.CreateAsync(identityRole);
+            IdentityResult result = await _roleManager.CreateAsync(identityRole);
             if (result.Succeeded)
             {
                 TempData["success"] = "Role " + model.RoleName + " saved successfully";
@@ -75,8 +77,8 @@ namespace rokWebsite.Controllers
         public IActionResult AssignRole()
         {
             AssignRoleViewModel model = new AssignRoleViewModel();
-            model.Users = userManager.Users.ToList();
-            model.Roles = roleManager.Roles.ToList();
+            model.Users = _userManager.Users.ToList();
+            model.Roles = _roleManager.Roles.ToList();
             return View(model);
         }
 
@@ -88,7 +90,7 @@ namespace rokWebsite.Controllers
             {
                 Name = model.RoleName
             };
-            IdentityResult result = await roleManager.CreateAsync(identityRole);
+            IdentityResult result = await _roleManager.CreateAsync(identityRole);
             if (result.Succeeded)
             {
                 TempData["success"] = "Role " + model.RoleName + " saved successfully";
@@ -110,8 +112,8 @@ namespace rokWebsite.Controllers
         [ValidateAntiForgeryToken]
         public async Task<JsonResult> GetUserRoles(string userId)
         {
-            var user = await userManager.FindByIdAsync(userId);
-            var roles = await userManager.GetRolesAsync(user);
+            var user = await _userManager.FindByIdAsync(userId);
+            var roles = await _userManager.GetRolesAsync(user);
             List<string> RoleIds = _db.UserRoles.Where(x => x.UserId == userId).Select(x => x.RoleId).ToList();
             return Json(RoleIds);
         }
@@ -120,7 +122,7 @@ namespace rokWebsite.Controllers
         [ValidateAntiForgeryToken]
         public async Task<JsonResult> GetRoleClaims(string RoleId)
         {
-            var role = await roleManager.FindByIdAsync(RoleId);
+            var role = await _roleManager.FindByIdAsync(RoleId);
             List<string> ClaimIds = _db.RoleClaims.Where(x => x.RoleId == role.Id).Select(x=>x.ClaimValue).ToList();
             return Json(ClaimIds);
         }
@@ -129,11 +131,11 @@ namespace rokWebsite.Controllers
         [ValidateAntiForgeryToken]
         public async Task<JsonResult> SwitchUserRole(string UserId, string RoleId)
         {
-            var user = await userManager.FindByIdAsync(UserId);
-            var role = await roleManager.FindByIdAsync(RoleId);
+            var user = await _userManager.FindByIdAsync(UserId);
+            var role = await _roleManager.FindByIdAsync(RoleId);
 
             //try to add the role
-            IdentityResult result = await userManager.AddToRoleAsync(user,role.Name);
+            IdentityResult result = await _userManager.AddToRoleAsync(user,role.Name);
             if(result.Succeeded)
             {
                 return Json(new
@@ -145,7 +147,7 @@ namespace rokWebsite.Controllers
             else
             {
                 //if failed, try to remove the role
-                IdentityResult resultDelete = await userManager.RemoveFromRoleAsync(user, role.Name);
+                IdentityResult resultDelete = await _userManager.RemoveFromRoleAsync(user, role.Name);
                 if(resultDelete.Succeeded)
                 {
                     return Json(new
@@ -168,16 +170,19 @@ namespace rokWebsite.Controllers
         {
             string rr = RoleId;
             string tt = ClaimValue;
+            long NowTicks; // for changing cache
             //Check if Claim exists in role
             var claim = _db.RoleClaims.Where(x => x.ClaimValue == ClaimValue && x.RoleId == RoleId).FirstOrDefault();
-            var user = await userManager.FindByNameAsync("tesali");
-          
-            if(claim == null)
+
+            if (claim == null)
             {
-                var role = await roleManager.FindByIdAsync(RoleId);
-                IdentityResult result= await roleManager.AddClaimAsync(role, new Claim(CustomClaimTypes.Permission, ClaimValue));
+                var role = await _roleManager.FindByIdAsync(RoleId);
+                IdentityResult result= await _roleManager.AddClaimAsync(role, new Claim(CustomClaimTypes.Permission, ClaimValue));
                 if(result.Succeeded)
                 {
+                    NowTicks = DateTime.Now.Ticks;
+                    _memoryCache.Set("LastPermissionUpdate", new DateTime(NowTicks));
+
                     return Json(new
                     {
                         Data = "Claim "+ClaimValue+" successfully added to " + role.Name,
@@ -187,11 +192,14 @@ namespace rokWebsite.Controllers
             }
             else
             {
-                var role = await roleManager.FindByIdAsync(RoleId);
-                IdentityResult result = await roleManager.RemoveClaimAsync(role, new Claim(CustomClaimTypes.Permission, ClaimValue));
+                var role = await _roleManager.FindByIdAsync(RoleId);
+                IdentityResult result = await _roleManager.RemoveClaimAsync(role, new Claim(CustomClaimTypes.Permission, ClaimValue));
                 string t = ClaimValue;
                 if(result.Succeeded)
                 {
+                    NowTicks = DateTime.Now.Ticks;
+                    _memoryCache.Set("LastPermissionUpdate", new DateTime(NowTicks));
+
                     return Json(new
                     {
                         Data = "Claim " + claim.ClaimValue + " successfully removed from " + role.Name,
@@ -213,11 +221,11 @@ namespace rokWebsite.Controllers
         {
             List<string> errorList = new List<string>();
 
-            IdentityRole identityRole = await roleManager.FindByNameAsync(model.DeleteRoleName);
+            IdentityRole identityRole = await _roleManager.FindByNameAsync(model.DeleteRoleName);
 
             if (identityRole != null)
             {
-                IdentityResult result = await roleManager.DeleteAsync(identityRole);
+                IdentityResult result = await _roleManager.DeleteAsync(identityRole);
                 if (result.Succeeded)
                 {
                     TempData["success"] = "Role " + model.RoleName + " removed successfully";

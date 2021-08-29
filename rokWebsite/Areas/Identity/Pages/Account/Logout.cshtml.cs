@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using rokWebsite.Helpers;
 using rokWebsite.Models;
 
 namespace rokWebsite.Areas.Identity.Pages.Account
@@ -34,10 +35,7 @@ namespace rokWebsite.Areas.Identity.Pages.Account
         {
             await _signInManager.SignOutAsync();
             _logger.LogInformation("User logged out.");
-            string RolesOfUser = _signInManager.Context.User.Identity.Name + "Roles";
-            string ClaimsOfUserRole = _signInManager.Context.User.Identity.Name + "Claims";
-            _memoryCache.Remove(RolesOfUser);
-            _memoryCache.Remove(ClaimsOfUserRole);
+            UserSessionHelper.EndSessions(_signInManager.Context.User.Identity.Name, HttpContext);
 
             if (returnUrl != null)
             {

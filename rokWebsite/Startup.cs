@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -76,10 +77,12 @@ namespace rokWebsite
                 // The rest omitted for brevity.
             });
 
+
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env,  IMemoryCache cache)
         {
             if (env.IsDevelopment())
             {
@@ -100,6 +103,16 @@ namespace rokWebsite
 
             app.UseAuthentication();
             app.UseAuthorization();
+
+            //Save Roles update times to cache
+            using (var serviceScope = app.ApplicationServices.CreateScope())
+            {
+                var entryOptions = new MemoryCacheEntryOptions().SetPriority(CacheItemPriority.High);
+                var services = serviceScope.ServiceProvider;
+                var myDbContext = services.GetService<KingdomDbContext>();
+                long NowTicks = DateTime.Now.Ticks;
+                cache.Set("LastPermissionUpdate",new DateTime(NowTicks));
+            }
 
             app.UseEndpoints(endpoints =>
             {

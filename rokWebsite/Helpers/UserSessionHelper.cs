@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Caching.Memory;
 using rokWebsite.Models;
 using rokWebsite.Utility;
 using System;
@@ -44,11 +45,13 @@ namespace rokWebsite.Helpers
             string ClaimsOfUserRole = Username + "Claims";
             httpContext.Session.SetComplexData(RolesOfUser, userRoleNames);
             httpContext.Session.SetComplexData(ClaimsOfUserRole, roleClaims);
+            long t = DateTime.Now.Ticks;
+            httpContext.Session.SetString(Username, new DateTime(t).ToString());
         }
 
-        public static void EndSessions(string Username)
+        public static void EndSessions(string Username, HttpContext HttpContext)
         {
-            HttpContext httpContext = _httpContextAccessor.HttpContext;
+            HttpContext httpContext = HttpContext;
 
             string RolesOfUser = Username + "Roles";
             string ClaimsOfUserRole = Username + "Claims";

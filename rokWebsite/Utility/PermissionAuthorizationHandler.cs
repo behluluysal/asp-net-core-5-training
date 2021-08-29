@@ -9,6 +9,7 @@ using Microsoft.Extensions.Caching.Memory;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using rokWebsite.Helpers;
+using System.Globalization;
 
 namespace rokWebsite.Utility
 {
@@ -33,32 +34,29 @@ namespace rokWebsite.Utility
             {
                 return;
             }
+
             HttpContext httpContext = _httpContextAccessor.HttpContext;
+            DateTime SessionUpdateTime = Convert.ToDateTime(httpContext.Session.GetString(context.User.Identity.Name));
+            DateTime LastPermissionUpdate = Convert.ToDateTime(_cache.Get("LastPermissionUpdate"));
 
-            var user = await _userManager.GetUserAsync(context.User);
-            var userRoleNames = await _userManager.GetRolesAsync(user);
-            var userRoles = _roleManager.Roles.Where(x => userRoleNames.Contains(x.Name));
-            string s2 = context.User.Identity.Name + "Roles";
-            string s3 = context.User.Identity.Name + "Claims";
-
-            List<string> data = await UserSessionHelper.GetSessionData(s2, httpContext,user.UserName,_userManager,_roleManager);
-            List<string> data2 = await UserSessionHelper.GetSessionData(s3, httpContext, user.UserName, _userManager, _roleManager);
-
-            var o = _cache.Get<IList<string>>(s2);
-            var o2 = _cache.Get<List<Claim>>(s3);
-            foreach (var role in userRoles)
+            if (SessionUpdateTime < LastPermissionUpdate)
             {
-                var roleClaims = await _roleManager.GetClaimsAsync(role);
-                var permissions = roleClaims.Where(x => x.Type == CustomClaimTypes.Permission &&
-                                                        x.Value == requirement.Permission)
-                                            .Select(x => x.Value);
-
-                if (permissions.Any())
-                {
-                    context.Succeed(requirement);
-                    return;
-                }
+                await UserSessionHelper.SetSessions(context.User.Identity.Name, httpContext, _userManager, _roleManager);
             }
+
+            string UserName = context.User.Identity.Name;
+            string s2 = UserName + "Roles";
+            string s3 = UserName  + "Claims";
+
+            List<string> data = await UserSessionHelper.GetSessionData(s2, httpContext, UserName, _userManager,_roleManager);
+            List<string> UserClaims = await UserSessionHelper.GetSessionData(s3, httpContext, UserName, _userManager, _roleManager);
+           
+            if(UserClaims.Contains(requirement.Permission))
+            {
+                context.Succeed(requirement);
+                return;
+            }
+           
         }
     }
 }
